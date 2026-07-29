@@ -1,0 +1,4 @@
+data/*
+!data/jobs.example.json
+
+node_modules/

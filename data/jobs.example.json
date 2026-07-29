@@ -1,0 +1,50 @@
+[
+    {
+        "type": "minutely",
+        "at": "30",
+        "command": "bun -e 'console.log(\"Hello, this is a job that runs every minute!\")'",
+        "enabled": true
+    },
+    {
+        "type": "minutely",
+        "at": "45",
+        "command": "bun -e 'console.log(\"Hello, this is a disabled job that runs every minute!\")'",
+        "enabled": false
+    },
+    {
+        "type": "hourly",
+        "at": "30",
+        "command": "bun -e 'console.log(\"Hello, this is a job that runs every hour!\")'",
+        "enabled": true
+    },
+    {
+        "type": "daily",
+        "at": "16:00",
+        "command": "bun -e 'console.log(\"Hello, this is a job that runs every day!\")'",
+        "enabled": true
+    },
+    {
+        "type": "weekly",
+        "at": "Monday 16:00",
+        "command": "bun -e 'console.log(\"Hello, this is a job that runs every week!\")'",
+        "enabled": true
+    },
+    {
+        "type": "weekly",
+        "at": "1 16:00",
+        "command": "bun -e 'console.log(\"Hello, this is a job that runs every week!\")'",
+        "enabled": true
+    },
+    {
+        "type": "monthly",
+        "at": "1 15:00",
+        "command": "bun -e 'console.log(\"Hello, this is a job that runs every month!\")'",
+        "enabled": true
+    },
+    {
+        "type": "yearly",
+        "at": "1-1 16:00",
+        "command": "bun -e 'console.log(\"Hello, this is a job that runs every year!\")'",
+        "enabled": true
+    }
+]
