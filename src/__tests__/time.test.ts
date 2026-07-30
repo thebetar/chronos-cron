@@ -1,5 +1,6 @@
-import { describe, expect, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { JobType, type Job } from '../jobs';
+import { getLogger } from '../logger';
 import { checkJobTime } from '../time';
 
 function job(type: JobType, at: string): Job {
@@ -9,11 +10,20 @@ function job(type: JobType, at: string): Job {
         command: 'echo test',
         enabled: true,
         hash: 'test-hash',
-        runFlag: true,
     };
 }
 
 describe('checkJobTime', () => {
+    let errorSpy: ReturnType<typeof spyOn>;
+
+    beforeEach(() => {
+        errorSpy = spyOn(getLogger(), 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        errorSpy.mockRestore();
+    });
+
     test('minutely matches on the given second', () => {
         const date = new Date(2026, 0, 1, 12, 0, 30);
 
@@ -80,5 +90,15 @@ describe('checkJobTime', () => {
         const date = new Date(2026, 0, 1, 16, 0, 0);
 
         expect(checkJobTime(job(JobType.DAILY, '16:0'), date)).toBe(false);
+    });
+
+    test('logs error when time check throws', () => {
+        const date = new Date(2026, 0, 1, 12, 30, 0);
+
+        expect(checkJobTime(job(JobType.HOURLY, 'invalid'), date)).toBe(false);
+        expect(errorSpy).toHaveBeenCalledWith(
+            'Error checking job time:',
+            expect.any(Error),
+        );
     });
 });

@@ -1,24 +1,42 @@
-import { describe, expect, test } from 'bun:test';
-import { getJobs, setJobRunFlags, JobType } from '../jobs';
+import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
+import { getJobs, JobType } from '../jobs';
+import { getLogger } from '../logger';
 
 describe('getJobs', () => {
-    test('loads jobs from data/jobs.json with hash and runFlag', async () => {
+    let errorSpy: ReturnType<typeof spyOn>;
+
+    beforeEach(() => {
+        errorSpy = spyOn(getLogger(), 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        errorSpy.mockRestore();
+    });
+
+    test('loads enabled jobs from data/jobs.json with hash', async () => {
         const jobs = await getJobs();
 
         expect(jobs.length).toBeGreaterThan(0);
         expect(jobs[0]).toHaveProperty('type');
         expect(jobs[0]).toHaveProperty('at');
         expect(jobs[0]).toHaveProperty('command');
+        expect(jobs[0].enabled).toBe(true);
         expect(jobs[0].hash).toBeString();
         expect(jobs[0].hash.length).toBe(32);
-        expect(jobs[0].runFlag).toBe(true);
+    });
+
+    test('only returns enabled jobs', async () => {
+        const jobs = await getJobs();
+
+        for (const job of jobs) {
+            expect(job.enabled).toBe(true);
+        }
     });
 
     test('jobs use valid types and at formats', async () => {
         const jobs = await getJobs();
 
         for (const job of jobs) {
-            // Check if the job type is valid
             expect(Object.values(JobType)).toContain(job.type);
 
             expect(typeof job.at).toBe('string');
@@ -26,9 +44,8 @@ describe('getJobs', () => {
             expect(typeof job.command).toBe('string');
             expect(typeof job.enabled).toBe('boolean');
 
-            // Create a hash of the job and check if it is a string
             expect(job.hash).toBeString();
-            expect(typeof job.runFlag).toBe('boolean');
+            expect(job.hash.length).toBe(32);
         }
     });
 
@@ -57,31 +74,23 @@ describe('getJobs', () => {
 
         expect(new Set(hashes).size).toBe(hashes.length);
     });
-});
 
-describe('setJobRunFlags', () => {
-    test('sets runFlag false for jobs that ran and true for the rest', async () => {
-        const jobs = await getJobs();
-        const [first, ...rest] = jobs;
+    test('logs error and rethrows when jobs file cannot be read', async () => {
+        const previousJobsFile = process.env.JOBS_FILE;
+        process.env.JOBS_FILE = '/nonexistent/jobs.json';
 
-        await setJobRunFlags([first]);
-
-        expect(first.runFlag).toBe(false);
-        for (const job of rest) {
-            expect(job.runFlag).toBe(true);
-        }
-    });
-
-    test('resets all runFlags to true when no jobs ran', async () => {
-        const jobs = await getJobs();
-
-        await setJobRunFlags([jobs[0]]);
-        expect(jobs[0].runFlag).toBe(false);
-
-        await setJobRunFlags([]);
-
-        for (const job of jobs) {
-            expect(job.runFlag).toBe(true);
+        try {
+            await expect(getJobs()).rejects.toThrow();
+            expect(errorSpy).toHaveBeenCalledWith(
+                'Error reading jobs file:',
+                expect.any(Error),
+            );
+        } finally {
+            if (previousJobsFile === undefined) {
+                delete process.env.JOBS_FILE;
+            } else {
+                process.env.JOBS_FILE = previousJobsFile;
+            }
         }
     });
 });

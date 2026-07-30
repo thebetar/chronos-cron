@@ -1,6 +1,10 @@
 import path from 'path';
 import crypto from 'crypto';
 
+import { getLogger } from './logger';
+
+const logger = getLogger();
+
 export enum JobType {
     MINUTELY = 'minutely',
     HOURLY = 'hourly',
@@ -45,7 +49,7 @@ export async function getJobs() {
 
         return jobsCache;
     } catch (error) {
-        console.error('Error reading jobs file:', error);
+        logger.error('Error reading jobs file:', error);
         throw error;
     }
 }

@@ -1,11 +1,14 @@
 import { getJobs, type Job } from './jobs';
 import { checkJobTime } from './time';
+import { getLogger } from './logger';
+
+const logger = getLogger();
 
 async function main() {
-    console.log('Starting jobs checker');
+    logger.log('Starting jobs checker');
 
     const jobs = await getJobs();
-    console.log(`Found ${jobs.length} jobs in the configuration file`);
+    logger.log(`Found ${jobs.length} jobs in the configuration file`);
 
     let lastSecond = -1;
 
@@ -31,7 +34,7 @@ async function checkJobs() {
         return;
     }
 
-    console.log(`Running ${jobsToRun.length} jobs`);
+    logger.log(`Running ${jobsToRun.length} jobs`);
 
     jobsToRun.forEach((job: Job) => {
         Bun.spawn(['sh', '-c', job.command], {

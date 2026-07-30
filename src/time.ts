@@ -1,5 +1,7 @@
 import { type Job, JobType } from "./jobs";
+import { getLogger } from "./logger";
 
+const logger = getLogger();
 
 export function checkJobTime(job: Job, date = new Date()) {
     try {
@@ -20,7 +22,7 @@ export function checkJobTime(job: Job, date = new Date()) {
                 return false;
         }
     } catch (error) {
-        console.error('Error checking job time:', error);
+        logger.error('Error checking job time:', error);
         return false;
     }
 }
@@ -107,12 +109,12 @@ function checkDaily(job: Job, date: Date) {
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 function checkWeekly(job: Job, date: Date) {
-    const jobAt = job.at;
+    const jobDay = job.at.split(' ')[0];
 
-    const jobDay = jobAt.split(' ')[0];
-
-    let jobTime = jobAt.split(' ')[1];
+    let jobTime = job.at.split(' ')[1];
     jobTime = normaliseJobTime(jobTime, TimeFormat.HOURS);
+
+    const jobAt = `${jobDay} ${jobTime}`;
 
     const currentDay = DAYS_OF_WEEK.includes(jobDay) ? DAYS_OF_WEEK[date.getDay()] : date.getDay();
     const currentTime = `${currentDay} ${getTimeString(date, TimeFormat.HOURS)}`;
@@ -121,7 +123,7 @@ function checkWeekly(job: Job, date: Date) {
 }
 
 function checkMonthly(job: Job, date: Date) {
-    const currentTime = getTimeString(date, TimeFormat.HOURS);
+    const currentTime = `${date.getDate()} ${getTimeString(date, TimeFormat.HOURS)}`;
 
     const jobAt = getJobDatetime(job.at);
 
