@@ -25,6 +25,11 @@ export interface Job {
 let jobsCacheFileHash = '';
 let jobsCache: Job[] = [];
 
+export function resetJobsCache() {
+    jobsCacheFileHash = '';
+    jobsCache = [];
+}
+
 export async function getJobs() {
     try {
         const jobsPath = process.env.JOBS_FILE || path.join(import.meta.dirname, '..', 'data', 'jobs.json');
